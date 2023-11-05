@@ -265,6 +265,7 @@ class MarkdownEditor : SurfaceView, SurfaceHolder.Callback2 {
         }
 
         eguiEditor.indentAtCursor(wgpuObj, deindent)
+        invalidate()
     }
 
     fun clipboardCut() {
@@ -387,7 +388,6 @@ class EGUIEditorEditable(val view: View, val eguiEditor: EGUIEditor, val wgpuObj
 
     fun getSelection(): Pair<Int, Int> {
         val selStr = eguiEditor.getSelection(wgpuObj)
-        Timber.e("sel str: $selStr")
         val selections = selStr.split(" ").map { it.toIntOrNull() ?: 0 }
 
         return Pair(selections.getOrNull(0) ?: 0, selections.getOrNull(1) ?: 0)
