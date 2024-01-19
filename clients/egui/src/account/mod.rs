@@ -812,7 +812,7 @@ impl AccountScreen {
                         } else if ext == "pdf" {
                             TabContent::Pdf(PdfViewer::boxed(&bytes, &ctx))
                         } else if ext == "svg" {
-                            TabContent::Svg(SVGEditor::boxed(&bytes))
+                            TabContent::Svg(SVGEditor::boxed(&bytes, core.clone()))
                         } else {
                             TabContent::PlainText(PlainText::boxed(&bytes))
                         }
