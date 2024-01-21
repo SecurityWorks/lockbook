@@ -2,13 +2,11 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use eframe::egui;
-use image::ImageFormat;
 use minidom::Element;
 use resvg::tiny_skia::Pixmap;
 use resvg::usvg::{self, ImageHrefResolver, ImageKind, Size};
 use usvg_parser::Options;
 
-use crate::model::DocType;
 // use usvg_parser::;
 use crate::theme::ThemePalette;
 
@@ -130,7 +128,7 @@ impl SVGEditor {
         .unwrap();
 
         if self.buffer.needs_path_map_update {
-            self.buffer.recalc_paths();
+            self.buffer.recalc_paths(&utree);
         }
 
         let tree = resvg::Tree::from_usvg(&utree);
@@ -160,7 +158,7 @@ impl SVGEditor {
     fn lb_local_resolver(core: &lb::Core) -> ImageHrefStringResolverFn {
         let lb_link_prefix = "lb://";
         let core = core.clone();
-        Box::new(move |href: &str, opts: &Options| {
+        Box::new(move |href: &str, _| {
             if !href.starts_with(lb_link_prefix) {
                 return None;
             }

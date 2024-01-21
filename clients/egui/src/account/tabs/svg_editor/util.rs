@@ -20,7 +20,14 @@ pub fn pointer_interests_path(
     path: &Subpath<ManipulatorGroupId>, pos: egui::Pos2, last_pos: Option<egui::Pos2>,
     error_radius: f64,
 ) -> bool {
-    // first pass: check if the path bounding box contain the cursor.
+    let last_pos = last_pos.unwrap_or(pos.round());
+    let delete_brush = Bezier::from_linear_dvec2(
+        glam::dvec2(last_pos.x as f64, last_pos.y as f64),
+        glam::dvec2(pos.x as f64, pos.y as f64),
+    )
+    .outline(error_radius, bezier_rs::Cap::Round);
+
+    // first pass: check if the path bounding box contains the cursor.
     // padding to account for low sampling rate scenarios and flat
     // lines with empty bounding boxes
     let padding = 50.0;
@@ -32,18 +39,18 @@ pub fn pointer_interests_path(
         .expand(padding),
         None => return false,
     };
-    let last_pos = last_pos.unwrap_or(pos.round());
+
+    // closed paths are images, we're not looking for intersections
+    // only but also if the delete brush is contained by the img
+    if path.closed() && (bb.contains(pos) || bb.contains(last_pos)) {
+        return true;
+    }
+
     if !(bb.contains(pos) || bb.contains(last_pos)) {
         return false;
     }
 
     // second more rigorous pass
-    let delete_brush = Bezier::from_linear_dvec2(
-        glam::dvec2(last_pos.x as f64, last_pos.y as f64),
-        glam::dvec2(pos.x as f64, pos.y as f64),
-    )
-    .outline(error_radius, bezier_rs::Cap::Round);
-
     let is_inside_delete_brush = path.is_point()
         && delete_brush.contains_point(path.manipulator_groups().get(0).unwrap().anchor);
     let intersects_delete_brush = !path

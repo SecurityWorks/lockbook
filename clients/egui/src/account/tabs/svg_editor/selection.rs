@@ -12,6 +12,7 @@ pub struct Selection {
     laso_rect: Option<egui::Rect>,
 }
 
+#[derive(Debug)]
 struct SelectedElement {
     id: String,
     original_pos: egui::Pos2,
@@ -43,6 +44,7 @@ impl Selection {
         };
 
         let maybe_selected_el = self.detect_drag(buffer, pos, ui);
+        println!("{:#?}", maybe_selected_el);
         if maybe_selected_el.is_some() {
             ui.output_mut(|r| r.cursor_icon = egui::CursorIcon::Grab);
         }

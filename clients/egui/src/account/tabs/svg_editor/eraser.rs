@@ -27,23 +27,26 @@ impl Eraser {
     pub fn handle_events(&mut self, event: EraseEvent, buffer: &mut Buffer) {
         match event {
             EraseEvent::Start(pos) => {
-                buffer.paths.iter().for_each(|(id, path)| {
+                for (id, path) in buffer.paths.iter() {
                     if self.paths_to_delete.contains_key(id) {
-                        return;
+                        continue;
+                    }
+                    if !pointer_interests_path(path, pos, self.last_pos, ERASER_THICKNESS as f64) {
+                        continue;
                     }
 
-                    if pointer_interests_path(path, pos, self.last_pos, ERASER_THICKNESS as f64) {
-                        if let Some(n) = buffer
-                            .current
-                            .children()
-                            .find(|e| e.attr("id").unwrap_or_default().eq(&id.to_string()))
-                        {
-                            self.paths_to_delete.insert(id.clone(), n.clone());
-                        }
+                    if let Some(n) = buffer
+                        .current
+                        .children()
+                        .find(|e| e.attr("id").unwrap_or_default().eq(&id.to_string()))
+                    {
+                        self.paths_to_delete.insert(id.to_string(), n.clone());
+                    }
+                }
 
-                        if let Some(n) = util::node_by_id(&mut buffer.current, id.to_string()) {
-                            n.set_attr("opacity", "0.3");
-                        }
+                self.paths_to_delete.iter_mut().for_each(|(id, _)| {
+                    if let Some(n) = util::node_by_id(&mut buffer.current, id.to_string()) {
+                        n.set_attr("opacity", "0.3");
                     }
                 });
 
