@@ -286,7 +286,7 @@ fn apply_compounded_transforms(
     subpath: &mut Subpath<ManipulatorGroupId>,
 ) {
     if let Some(transform) = local_transform {
-        let [a, b, c, d, e, f] = deserialize_transform(&transform);
+        let [a, b, c, d, e, f] = deserialize_transform(transform);
 
         subpath.apply_transform(DAffine2 {
             matrix2: DMat2 { x_axis: DVec2 { x: a, y: b }, y_axis: DVec2 { x: c, y: d } },
