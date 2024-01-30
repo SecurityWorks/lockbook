@@ -1,8 +1,9 @@
 use eframe::egui;
 
 use super::{
-    node_by_id, pointer_interests_path, util::deserialize_transform, Buffer, DeleteElement,
-    TransformElement,
+    node_by_id, pointer_interests_path,
+    util::{deserialize_transform, serialize_transform},
+    Buffer, DeleteElement, TransformElement,
 };
 
 pub struct Selection {
@@ -192,6 +193,16 @@ impl Selection {
                 history_dirty = true;
                 drag(d, el, buffer);
             }
+
+            if ui.input(|r| r.key_pressed(egui::Key::PlusEquals)) {
+                zoom(1.1, el, buffer, working_rect);
+                transform_origin_dirty = true;
+                history_dirty = true;
+            } else if ui.input(|r| r.key_pressed(egui::Key::Minus)) {
+                zoom(0.9, el, buffer, working_rect);
+                transform_origin_dirty = true;
+                history_dirty = true;
+            }
         }
 
         if transform_origin_dirty {
@@ -324,11 +335,25 @@ fn drag(delta: egui::Pos2, de: &mut SelectedElement, buffer: &mut Buffer) {
         node.set_attr(
             "transform",
             format!(
-                "matrix(1,0,0,1,{},{} )",
+                "matrix({},0,0,{},{},{} )",
+                de.original_matrix.1[0],
+                de.original_matrix.1[3],
                 delta.x as f64 + de.original_matrix.clone().1[4],
                 delta.y as f64 + de.original_matrix.clone().1[5]
             ),
         );
+        buffer.needs_path_map_update = true;
+    }
+}
+
+fn zoom(factor: f64, de: &mut SelectedElement, buffer: &mut Buffer, element_rect: egui::Rect) {
+    if let Some(node) = node_by_id(&mut buffer.current, de.id.clone()) {
+        let mut scaled_matrix = de.original_matrix.1.clone().map(|val| val * factor);
+        scaled_matrix[4] += (1. - factor) * element_rect.center().x as f64;
+        scaled_matrix[5] += (1. - factor) * element_rect.center().y as f64;
+        // println!("before {:#?}", de.original_matrix);
+        // println!("after {:#?}", scaled_matrix);
+        node.set_attr("transform", serialize_transform(&scaled_matrix));
         buffer.needs_path_map_update = true;
     }
 }
